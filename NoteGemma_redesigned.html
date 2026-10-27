@@ -1,0 +1,2182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative AI | NoteGemma Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-sidebar: #0f0a20;
+            --bg-main: #180d38;
+            --bg-gradient: radial-gradient(circle at 50% 20%, #3b126d 0%, #170932 50%, #0d041c 100%);
+            --surface: #26164d;
+            --surface-hover: #351f68;
+            --border: #442a82;
+            --primary: #2563eb;
+            --primary-btn: #3b82f6;
+            --accent-purple: #9333ea;
+            --accent-pink: #d946ef;
+            --accent-glow: rgba(147, 51, 234, 0.35);
+            --text-main: #f8fafc;
+            --text-muted: #a79ec4;
+            --send-btn: #a855f7;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* LOGIN OVERLAY MODAL */
+        #loginOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(13, 4, 28, 0.95);
+            backdrop-filter: blur(16px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: rgba(23, 9, 50, 0.9);
+            border: 1px solid var(--border);
+            padding: 32px 36px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), 0 0 30px var(--accent-glow);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            text-align: center;
+        }
+
+        .login-input-group {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            gap: 6px;
+        }
+
+        .login-input-group label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .login-input {
+            background: rgba(15, 10, 32, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .login-input:focus {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .login-submit-btn {
+            background: linear-gradient(135deg, var(--accent-purple), var(--primary-btn));
+            color: white;
+            border: none;
+            padding: 13px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 6px;
+        }
+
+        .login-submit-btn:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        /* SIDEBAR */
+        aside.sidebar {
+            width: 270px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px 16px;
+            gap: 18px;
+            z-index: 30;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        aside.sidebar.collapsed {
+            margin-left: -270px;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .new-chat-btn {
+            background: var(--primary-btn);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+            transition: all 0.2s ease;
+        }
+
+        .new-chat-btn:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 6px;
+        }
+
+        .nav-tools {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .tool-tab {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-muted);
+        }
+
+        .tool-tab:hover {
+            background: var(--surface-hover);
+            color: white;
+        }
+
+        .tool-tab.active-notes {
+            background: #1e1b4b;
+            border-color: #3b82f6;
+            color: white;
+        }
+
+        .sidebar-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .saved-items-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding-right: 4px;
+        }
+
+        .item-card {
+            background: rgba(38, 22, 77, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 12px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .item-card:hover {
+            border-color: var(--accent-purple);
+            background: var(--surface);
+        }
+
+        .item-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 170px;
+        }
+
+        .delete-btn {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 13px;
+            opacity: 0.6;
+            transition: 0.2s;
+        }
+
+        .delete-btn:hover {
+            opacity: 1;
+        }
+
+        /* MAIN VIEWPORT */
+        main.main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header.app-bar {
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(68, 42, 130, 0.4);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .sidebar-toggle-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border);
+            color: white;
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.2s;
+        }
+
+        .sidebar-toggle-btn:hover {
+            background: var(--surface-hover);
+        }
+
+        .agent-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .top-pill {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .top-pill.active-lang {
+            background: var(--accent-purple);
+            border-color: var(--accent-pink);
+            color: white;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .workspace-viewport {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 24px 130px;
+            height: calc(100vh - 65px);
+            min-height: 0;
+        }
+
+        .welcome-hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            max-width: 650px;
+            width: 100%;
+            margin-top: 15px;
+            gap: 16px;
+        }
+
+        .hero-rocket {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, rgba(168, 85, 247, 0) 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .hero-title {
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        .hero-subtitle {
+            font-size: 13.5px;
+            color: var(--text-muted);
+        }
+
+        .prompt-cards {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .prompt-card {
+            background: rgba(38, 22, 77, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .prompt-card:hover {
+            background: var(--surface-hover);
+            border-color: var(--accent-purple);
+            transform: translateY(-2px);
+        }
+
+        .initial-upload-box {
+            width: 100%;
+            max-width: 780px;
+            background: rgba(23, 9, 50, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+            backdrop-filter: blur(12px);
+            margin-top: 10px;
+        }
+
+        .file-drop-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(15, 10, 32, 0.4);
+            transition: 0.2s;
+        }
+
+        .file-drop-area:hover {
+            border-color: var(--accent-purple);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .split-workspace-arena {
+            display: none;
+            width: 100%;
+            height: 100%;
+            gap: 18px;
+            align-items: stretch;
+            min-height: 0;
+        }
+
+        .left-notes-column {
+            flex: 1;
+            background: rgba(23, 9, 50, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .column-header {
+            padding: 10px 14px;
+            background: rgba(15, 10, 32, 0.85);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .column-header h3 {
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 180px;
+        }
+
+        .view-switch-btns {
+            display: flex;
+            background: rgba(38, 22, 77, 0.9);
+            border-radius: 8px;
+            padding: 3px;
+            border: 1px solid var(--border);
+            gap: 4px;
+        }
+
+        .view-switch-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .view-switch-btn.active {
+            background: var(--accent-purple);
+            color: white;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .notes-content-view {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            line-height: 1.7;
+            color: #e2e8f0;
+            white-space: pre-wrap;
+            background: rgba(15, 10, 32, 0.35);
+        }
+
+        .pdf-preview-frame {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: none;
+            background: #2b2b2b;
+        }
+
+        .right-interactive-column {
+            flex: 1.1;
+            background: rgba(23, 9, 50, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            position: relative;
+            min-height: 0;
+        }
+
+        .quick-action-strip {
+            display: flex;
+            gap: 8px;
+            padding: 10px 14px;
+            background: rgba(15, 10, 32, 0.8);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .action-chip {
+            background: rgba(147, 51, 234, 0.15);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 7px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .action-chip:hover, .action-chip.active {
+            background: var(--accent-purple);
+            border-color: var(--accent-pink);
+            color: white;
+        }
+
+        .conversation-flow {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .bubble {
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .user-bubble {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            max-width: 85%;
+        }
+
+        .agent-bubble {
+            background: rgba(38, 22, 77, 0.9);
+            border: 1px solid var(--border);
+            align-self: flex-start;
+            max-width: 95%;
+        }
+
+        .formatted-response p {
+            margin: 0 0 10px;
+        }
+
+        .formatted-response h3,
+        .formatted-response h4 {
+            margin: 14px 0 7px;
+            color: #e9d5ff;
+            font-size: 14px;
+        }
+
+        .formatted-response ul,
+        .formatted-response ol {
+            margin: 6px 0 12px 22px;
+            padding-left: 8px;
+        }
+
+        .formatted-response li {
+            margin: 5px 0;
+            padding-left: 3px;
+        }
+
+        .evidence-quote {
+            background: rgba(147, 51, 234, 0.18);
+            border-left: 3px solid var(--accent-purple);
+            padding: 10px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            color: #f3e8ff;
+        }
+
+        .unsupported-tag {
+            background: rgba(239, 68, 68, 0.15);
+            border-left: 3px solid var(--danger);
+            padding: 10px 12px;
+            border-radius: 4px;
+            color: #fca5a5;
+            font-weight: 600;
+        }
+
+        .quiz-panel-box {
+            display: none;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            background: rgba(15, 10, 32, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin: 14px;
+        }
+
+        .flashcard-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .flashcard {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: rgba(15, 10, 32, 0.55);
+        }
+
+        .flashcard p {
+            margin-top: 6px;
+            line-height: 1.6;
+        }
+
+        .right-interactive-column.quiz-mode .conversation-flow {
+            display: none;
+        }
+
+        .option-choice {
+            background: rgba(38, 22, 77, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-top: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 13px;
+        }
+
+        .option-choice:hover {
+            border-color: var(--accent-purple);
+            background: var(--surface);
+        }
+
+        .option-choice.selected {
+            border-color: var(--accent-pink);
+            background: rgba(217, 70, 239, 0.2);
+        }
+
+        .bottom-dock {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 820px;
+            padding: 0 20px;
+            z-index: 25;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .dock-language-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            padding-right: 6px;
+        }
+
+        .lang-chip {
+            background: rgba(15, 10, 32, 0.7);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.2s;
+            backdrop-filter: blur(10px);
+        }
+
+        .lang-chip.selected {
+            background: var(--accent-purple);
+            color: white;
+            border-color: var(--accent-pink);
+        }
+
+        .search-container {
+            background: rgba(23, 9, 50, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 8px 14px 8px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(14px);
+        }
+
+        .search-container:focus-within {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            font-size: 14px;
+        }
+
+        .send-btn {
+            background: var(--send-btn);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .send-btn:hover {
+            opacity: 0.92;
+            transform: scale(1.04);
+        }
+
+        /* NoteGemma refined botanical palette */
+        :root {
+            --bg-sidebar: #E7F0DB;
+            --bg-main: #F7F9F3;
+            --bg-gradient: linear-gradient(135deg, #F7F9F3 0%, #E7F0DB 100%);
+            --surface: #FFFFFF;
+            --surface-hover: #F0F6E9;
+            --border: #D4E0C9;
+            --primary: #55883B;
+            --primary-btn: #55883B;
+            --accent-purple: #55883B;
+            --accent-pink: #9B6737;
+            --accent-glow: rgba(85, 136, 59, 0.16);
+            --text-main: #263322;
+            --text-muted: #687560;
+            --send-btn: #55883B;
+            --success: #55883B;
+            --danger: #B54735;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-main);
+        }
+
+        #loginOverlay {
+            background: rgba(231, 240, 219, 0.82);
+            backdrop-filter: blur(14px);
+        }
+
+        .login-card {
+            background: #FFFFFF;
+            border: 1px solid #D4E0C9;
+            box-shadow: 0 24px 70px rgba(44, 64, 35, 0.16);
+            color: #263322;
+        }
+
+        .login-card h2, .brand-header, .agent-logo, .hero-title {
+            color: #263322;
+        }
+
+        .login-input,
+        #noteTitleInput,
+        #noteTopicInput,
+        #pastedNotesInput {
+            background: #FBFCF9 !important;
+            border: 1px solid #D4E0C9 !important;
+            color: #263322 !important;
+        }
+
+        .login-input:focus,
+        #noteTitleInput:focus,
+        #noteTopicInput:focus,
+        #pastedNotesInput:focus,
+        .search-container:focus-within {
+            border-color: #55883B !important;
+            box-shadow: 0 0 0 3px rgba(85, 136, 59, 0.13);
+        }
+
+        .login-submit-btn,
+        .new-chat-btn,
+        .send-btn {
+            background: #55883B;
+            color: #FFFFFF;
+            box-shadow: 0 5px 14px rgba(85, 136, 59, 0.2);
+        }
+
+        .login-submit-btn:hover, .new-chat-btn:hover, .send-btn:hover {
+            background: #456F30;
+        }
+
+        aside.sidebar {
+            background: #E7F0DB;
+            border-right: 1px solid #D4E0C9;
+            color: #263322;
+        }
+
+        .brand-header {
+            padding: 2px 4px 8px;
+            letter-spacing: -0.3px;
+        }
+
+        .section-label {
+            color: #687560;
+            letter-spacing: 1px;
+        }
+
+        .tool-tab {
+            color: #56644E;
+            border-color: transparent;
+        }
+
+        .tool-tab:hover {
+            background: rgba(194, 231, 153, 0.42);
+            color: #263322;
+        }
+
+        .tool-tab.active-notes {
+            background: #C2E799;
+            border-color: #A8D47D;
+            color: #263322;
+        }
+
+        .item-card {
+            background: rgba(255,255,255,0.68);
+            border-color: #D4E0C9;
+            color: #263322;
+        }
+
+        .item-card:hover {
+            background: #FFFFFF;
+            border-color: #A8C993;
+        }
+
+        .delete-btn { color: #9B6737; }
+
+        main.main-content {
+            background: transparent;
+            color: #263322;
+        }
+
+        header.app-bar {
+            background: rgba(255,255,255,0.82);
+            border-bottom: 1px solid #DDE6D5;
+            backdrop-filter: blur(12px);
+        }
+
+        .sidebar-toggle-btn {
+            background: #FFFFFF;
+            border-color: #D4E0C9;
+            color: #405238;
+        }
+
+        .sidebar-toggle-btn:hover { background: #F0F6E9; }
+
+        .agent-logo span:first-child { color: #55883B !important; }
+
+        .top-pill {
+            background: #F5F8F1;
+            border-color: #D4E0C9;
+            color: #56644E;
+        }
+
+        .top-pill.active-lang {
+            background: #C2E799;
+            border-color: #A8D47D;
+            color: #263322;
+            box-shadow: none;
+        }
+
+        .workspace-viewport { padding-top: 28px; }
+
+        .hero-rocket {
+            background: #E7F0DB;
+            color: #55883B;
+        }
+
+        .hero-title {
+            font-size: clamp(26px, 3vw, 34px);
+            letter-spacing: -1px;
+        }
+
+        .hero-subtitle { color: #687560; }
+
+        .prompt-card {
+            background: rgba(255,255,255,0.88);
+            border-color: #DDE6D5;
+            color: #263322;
+            box-shadow: 0 4px 14px rgba(44, 64, 35, 0.04);
+        }
+
+        .prompt-card:hover {
+            background: #FFFFFF;
+            border-color: #A8C993;
+            box-shadow: 0 10px 24px rgba(44, 64, 35, 0.08);
+        }
+
+        .initial-upload-box {
+            background: #FFFFFF;
+            border-color: #D4E0C9;
+            color: #263322;
+            box-shadow: 0 12px 34px rgba(44, 64, 35, 0.07);
+        }
+
+        .file-drop-area {
+            background: #F8FAF5;
+            border-color: #B8CDAA;
+            color: #263322;
+        }
+
+        .file-drop-area:hover {
+            border-color: #55883B;
+            background: #F0F6E9;
+        }
+
+        .split-workspace-arena { gap: 16px; }
+
+        .left-notes-column,
+        .right-interactive-column {
+            background: #FFFFFF;
+            border-color: #DDE6D5;
+            box-shadow: 0 8px 24px rgba(44, 64, 35, 0.05);
+            backdrop-filter: none;
+        }
+
+        .column-header,
+        .quick-action-strip {
+            background: #F8FAF5;
+            border-color: #DDE6D5;
+            color: #263322;
+        }
+
+        .column-header h3 { color: #34452D; }
+
+        .view-switch-btns {
+            background: #EDF3E7;
+            border-color: #D4E0C9;
+        }
+
+        .view-switch-btn { color: #687560; }
+
+        .view-switch-btn.active {
+            background: #C2E799;
+            color: #263322;
+            box-shadow: none;
+        }
+
+        .notes-content-view {
+            background: #FFFFFF;
+            color: #34452D;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 13px;
+            line-height: 1.85;
+        }
+
+        .action-chip {
+            background: #F1F6EB;
+            border-color: #DDE6D5;
+            color: #405238;
+        }
+
+        .action-chip:hover, .action-chip.active {
+            background: #C2E799;
+            border-color: #A8C993;
+            color: #263322;
+        }
+
+        .conversation-flow { background: #FFFFFF; }
+
+        .bubble {
+            border-radius: 14px;
+            line-height: 1.75;
+        }
+
+        .user-bubble {
+            background: #55883B;
+            color: #FFFFFF;
+            box-shadow: 0 4px 12px rgba(85, 136, 59, 0.13);
+        }
+
+        .agent-bubble {
+            background: #F7F9F3;
+            border-color: #E0E8D9;
+            color: #34452D;
+        }
+
+        .formatted-response h3,
+        .formatted-response h4 { color: #456F30; }
+
+        .evidence-quote {
+            background: #F0F6E9;
+            border-left-color: #55883B;
+            color: #405238;
+        }
+
+        .unsupported-tag {
+            background: #FFF1EE;
+            border-left-color: #B54735;
+            color: #9D392B;
+        }
+
+        .quiz-panel-box {
+            background: #F8FAF5;
+            border-color: #DDE6D5;
+            color: #263322;
+        }
+
+        .quiz-panel-box h4 { color: #55883B !important; }
+
+        .flashcard {
+            background: #FFFFFF;
+            border-color: #DDE6D5;
+            color: #34452D;
+        }
+
+        .option-choice {
+            background: #FFFFFF;
+            border-color: #DDE6D5;
+            color: #34452D;
+        }
+
+        .option-choice:hover,
+        .option-choice.selected {
+            background: #F0F6E9;
+            border-color: #8EB777;
+        }
+
+        .bottom-dock {
+            max-width: 900px;
+        }
+
+        .lang-chip {
+            background: #FFFFFF;
+            border-color: #D4E0C9;
+            color: #687560;
+            backdrop-filter: blur(10px);
+        }
+
+        .lang-chip.selected {
+            background: #C2E799;
+            color: #263322;
+            border-color: #A8C993;
+        }
+
+        .search-container {
+            background: rgba(255,255,255,0.96);
+            border-color: #D4E0C9;
+            box-shadow: 0 10px 30px rgba(44, 64, 35, 0.12);
+            backdrop-filter: blur(14px);
+        }
+
+        .search-input {
+            color: #263322;
+        }
+
+        .search-input::placeholder,
+        input::placeholder,
+        textarea::placeholder { color: #87927E; }
+
+        #learnerLevelSelect {
+            background: #FFFFFF !important;
+            color: #405238 !important;
+            border-color: #D4E0C9 !important;
+        }
+
+        #learnerLevelSelect option {
+            background: #FFFFFF;
+            color: #263322;
+        }
+
+        #quizFeedbackBox > div {
+            background: #F0F6E9 !important;
+        }
+
+        button, .tool-tab, .prompt-card, .item-card, .action-chip,
+        .view-switch-btn, .lang-chip, .top-pill {
+            transition: background-color .18s ease, border-color .18s ease,
+                        color .18s ease, transform .18s ease, box-shadow .18s ease;
+        }
+
+        button:focus-visible, input:focus-visible, textarea:focus-visible,
+        select:focus-visible, .tool-tab:focus-visible, .prompt-card:focus-visible {
+            outline: 3px solid rgba(85, 136, 59, 0.28);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 1000px) {
+            aside.sidebar { width: 245px; }
+            .quick-action-strip { flex-wrap: wrap; }
+            .action-chip { padding: 7px 10px; }
+            .split-workspace-arena { gap: 12px; }
+            .column-header { flex-wrap: wrap; }
+        }
+
+        @media (max-width: 760px) {
+            body { overflow: auto; min-height: 100vh; height: auto; }
+            aside.sidebar {
+                position: fixed;
+                inset: 0 auto 0 0;
+                width: min(290px, 86vw);
+                height: 100dvh;
+                box-shadow: 12px 0 30px rgba(44,64,35,.12);
+            }
+            aside.sidebar.collapsed { margin-left: -300px; }
+            main.main-content { min-height: 100dvh; height: 100dvh; width: 100%; }
+            header.app-bar { padding: 12px 14px; gap: 10px; }
+            .app-bar > div:last-child { gap: 6px !important; }
+            .agent-logo { font-size: 13px; }
+            .app-bar .top-pill { padding: 5px 8px; font-size: 10px; }
+            .workspace-viewport { padding: 18px 12px 150px; }
+            .split-workspace-arena {
+                flex-direction: column;
+                height: auto;
+                min-height: 0;
+            }
+            .left-notes-column, .right-interactive-column {
+                flex: none;
+                min-height: 360px;
+                width: 100%;
+            }
+            .left-notes-column { height: 42vh; }
+            .right-interactive-column { height: 52vh; }
+            .quick-action-strip { gap: 6px; padding: 9px; }
+            .action-chip { font-size: 11px; }
+            .bottom-dock { bottom: 8px; padding: 0 10px; }
+            .dock-language-bar { flex-wrap: wrap; justify-content: center; padding: 0; }
+            .search-container { border-radius: 15px; padding-left: 12px; }
+            .search-input { min-width: 0; font-size: 13px; }
+            .welcome-hero { margin-top: 12px; }
+            .initial-upload-box { padding: 16px; }
+        }
+
+        @media (max-width: 420px) {
+            .agent-logo { gap: 5px; font-size: 12px; }
+            .app-bar .top-pill:nth-child(2) { display: none; }
+            .hero-title { font-size: 25px; }
+            .view-switch-btn { padding: 5px 7px; font-size: 10px; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="loginOverlay">
+    <form class="login-card" onsubmit="loginUser(event)">
+        <div style="font-size:38px;">🔐</div>
+        <div>
+            <h2 style="font-size:20px; font-weight:800;">NoteGemma Login</h2>
+            <p style="font-size:12.5px; color:var(--text-muted); margin-top:4px;">Sign in to sync your notes and PDFs across browsers.</p>
+        </div>
+        <div class="login-input-group">
+            <label for="loginEmail">Email</label>
+            <input type="email" id="loginEmail" class="login-input" value="himanshuajraria@gmail.com" autocomplete="username" required>
+        </div>
+        <div class="login-input-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" class="login-input" autocomplete="current-password" required>
+        </div>
+        <button class="login-submit-btn" id="loginSubmitButton" type="submit">Login & Sync</button>
+        <p id="loginErrorMsg" style="color:var(--danger); font-size:12px; display:none; font-weight:600;"></p>
+    </form>
+</div>
+
+<aside class="sidebar" id="appSidebar">
+    <div class="brand-header">
+        <span style="font-size: 20px;">🤖</span>
+        <span>AI Assistant</span>
+    </div>
+
+    <button class="new-chat-btn" onclick="startNewChat()">
+        <span>+</span> New Chat
+    </button>
+
+    <div>
+        <div class="section-label">Tools</div>
+        <div class="nav-tools">
+            <div class="tool-tab active-notes" id="tabNotes" onclick="showNotesUploader()">
+                <span>📄</span> Upload / Switch Notes
+            </div>
+            <div class="tool-tab" id="tabQuizzes" onclick="triggerQuizMode()">
+                <span>🧠</span> Quizzes & MCQ
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-section">
+        <div class="section-label" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>Saved Notes</span>
+            <span style="font-size: 10px; cursor: pointer; color: var(--accent-pink);" onclick="clearAllNotes()">Clear All</span>
+        </div>
+        <div class="saved-items-list" id="savedNotesContainer">
+            <div style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 20px;" id="emptyNotesMsg">No notes stored yet</div>
+        </div>
+    </div>
+
+    <div class="sidebar-section" style="max-height: 140px;">
+        <div class="section-label">History</div>
+        <div class="saved-items-list" id="chatHistoryContainer">
+            <div style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 10px;">Fresh Session</div>
+        </div>
+    </div>
+
+</aside>
+
+<main class="main-content">
+    <header class="app-bar">
+        <div class="header-left">
+            <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Toggle Sidebar">☰</button>
+            <div class="agent-logo">
+                <span style="color: var(--accent-pink);">✦</span>
+                <span>Creative AI (NoteGemma)</span>
+            </div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <div class="top-pill" id="langToggle" onclick="toggleLanguage()">Language: English</div>
+            <div class="top-pill">Track 1: Gemma 4</div>
+            <button class="top-pill" type="button" onclick="logoutUser()">Logout</button>
+        </div>
+    </header>
+
+    <div class="workspace-viewport" id="viewport">
+        <div class="welcome-hero" id="welcomeHero">
+            <div class="hero-rocket">🚀</div>
+            <h1 class="hero-title">Ready to explore?</h1>
+            <p class="hero-subtitle">Upload your study material or select a topic to get started.</p>
+
+            <div class="prompt-cards">
+                <div class="prompt-card" onclick="showNotesUploader()">
+                    <span class="prompt-icon">📂</span>
+                    <div class="prompt-meta">
+                        <strong>"Upload Document / Notes"</strong>
+                        <span>Auto-splits into study text & AI tutor</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="initial-upload-box" id="initialUploadBox">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="font-size: 15px;">📄 Ingest Syllabus Document</h3>
+                <button class="top-pill" onclick="hideUploadBox()">Close</button>
+            </div>
+            <div class="file-drop-area" onclick="document.getElementById('fileUploadInput').click()">
+                <span style="font-size: 28px; display: block; margin-bottom: 6px;">📂</span>
+                <strong id="uploadStatusText">Upload PDF or Text Notes</strong>
+                <p style="font-size: 11.5px; color: var(--text-muted); margin-top: 4px;">File upload karte hi real PDF preview aur AI workspace open ho jayenge!</p>
+                <input type="file" id="fileUploadInput" accept=".pdf,.txt" style="display: none;" onchange="handleFileUpload(event)">
+            </div>
+            <label for="noteTitleInput" style="font-size:12px; font-weight:700;">Note title</label>
+            <input id="noteTitleInput" type="text" placeholder="e.g. Java Unit 1"
+                   style="background:rgba(15,10,32,.8); border:1px solid var(--border); border-radius:8px; padding:10px; color:white;">
+            <label for="noteTopicInput" style="font-size:12px; font-weight:700;">Selected topic</label>
+            <input id="noteTopicInput" type="text" placeholder="e.g. Java, Web Technology"
+                   style="background:rgba(15,10,32,.8); border:1px solid var(--border); border-radius:8px; padding:10px; color:white;">
+            <label for="pastedNotesInput" style="font-size:12px; font-weight:700;">Or paste notes</label>
+            <textarea id="pastedNotesInput" rows="5" placeholder="Paste study notes here..."
+                      style="resize:vertical; background:rgba(15,10,32,.8); border:1px solid var(--border); border-radius:8px; padding:10px; color:white;"></textarea>
+            <button class="new-chat-btn" type="button" onclick="savePastedNotes()">Save pasted notes to Supabase</button>
+        </div>
+
+        <div class="split-workspace-arena" id="splitArena">
+            <section class="left-notes-column">
+                <div class="column-header">
+                    <h3><span>📄</span> <span id="activeDocumentTitle">Syllabus Notes</span></h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="view-switch-btns" id="viewToggleGroup">
+                            <button class="view-switch-btn" id="btnViewPdf" onclick="toggleLeftPaneView('pdf')">📄 PDF View</button>
+                            <button class="view-switch-btn active" id="btnViewText" onclick="toggleLeftPaneView('text')">📝 Extracted Text</button>
+                        </div>
+                        <button class="top-pill" onclick="showNotesUploader()" style="padding: 4px 8px; font-size: 11px;">Change File</button>
+                    </div>
+                </div>
+
+                <iframe id="pdfPreviewIframe" class="pdf-preview-frame"></iframe>
+                <div class="notes-content-view" id="notesDisplayContent"></div>
+            </section>
+
+            <section class="right-interactive-column" id="rightInteractiveColumn">
+                <div class="quick-action-strip">
+                    <button class="action-chip active" id="chipChat" onclick="switchRightMode('chat')">💬 Chat & Q&A</button>
+                    <button class="action-chip" id="chipQuiz" onclick="switchRightMode('quiz')">🧠 Practice MCQ Quiz</button>
+                    <button class="action-chip" onclick="explainCurrentMaterial()">📖 Explain notes</button>
+                    <button class="action-chip" onclick="createLearningPlan()">🗺️ Learning plan</button>
+                    <button class="action-chip" onclick="summarizeCurrentNotes()">📝 Summary</button>
+                    <button class="action-chip" onclick="createFlashcards()">🃏 Flashcards</button>
+                    <button class="action-chip" onclick="adaptExplanation()">🎯 Adapt to me</button>
+                    <button class="action-chip" onclick="explainInHinglishDirect()">🗣️ Explain in Hinglish</button>
+                </div>
+
+                <div class="conversation-flow" id="conversationFlow">
+                    <div class="bubble agent-bubble">
+                        <strong>🤖 NoteGemma Agent:</strong>
+                        <p style="margin-top: 4px;">Aapke notes left column mein loaded hain! Niche se question puchein ya upar <strong>"Practice MCQ Quiz"</strong> button dabayein.</p>
+                    </div>
+                </div>
+
+                <div class="quiz-panel-box" id="quizPanelBox">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h4 style="font-size: 13.5px; color: var(--accent-pink);">🎯 Formative Quiz Diagnostic</h4>
+                        <button class="top-pill" onclick="generatePracticeQuiz()" style="font-size: 11px; padding: 4px 8px;">Regenerate</button>
+                    </div>
+                    <p id="quizQuestionPrompt" style="font-weight: 700; font-size: 13px; line-height: 1.5;"></p>
+                    <div id="quizChoicesList"></div>
+                    <button class="new-chat-btn" style="margin-top: 12px; background: var(--accent-pink); width: 100%;" onclick="submitQuizEvaluation()">Submit & Diagnose Answer</button>
+                    <div id="quizFeedbackBox" style="margin-top: 10px; display: none;"></div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="bottom-dock">
+        <div class="dock-language-bar">
+            <span style="font-size: 11px; color: var(--text-muted); align-self: center; margin-right: 4px;">Response Mode:</span>
+            <div class="lang-chip selected" id="chipLangEn" onclick="setLanguage('en')">English</div>
+            <div class="lang-chip" id="chipLangHi" onclick="setLanguage('hi')">🌐 Hinglish (Auto-Detect)</div>
+            <select id="learnerLevelSelect" aria-label="Learning level" style="background:rgba(15,10,32,.9); color:white; border:1px solid var(--border); border-radius:8px; padding:4px 8px;">
+                <option value="auto">Level: Auto</option>
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+            </select>
+        </div>
+        <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="mainQueryInput" placeholder="Search or ask me anything from notes..." onkeydown="if(event.key==='Enter') executeSend()">
+            <button class="send-btn" onclick="executeSend()">➤</button>
+        </div>
+    </div>
+</main>
+
+<script>
+    const isLocalPage = window.location.protocol === "file:" ||
+        ["localhost", "127.0.0.1"].includes(window.location.hostname);
+    const API_BASE = window.NOTEGEMMA_API_BASE ||
+        (isLocalPage ? "http://127.0.0.1:8000/api" : "/api");
+    const LOGIN_TOKEN_KEY = "notegemma_access_token";
+
+    let activeQuiz = null;
+    let selectedQuizOption = null;
+    let notesLibrary = [];
+    let currentLanguage = "en";
+    let currentActiveNotes = "";
+    let currentTopic = "General Study";
+    let currentPdfUrl = null;
+    let lastAskedQuestion = "Inheritance in Java";
+    let quizStats = {correct: 0, attempted: 0};
+    try {
+        const savedStats = JSON.parse(localStorage.getItem("notegemma_quiz_stats") || "{}");
+        if (Number.isFinite(savedStats.correct) && Number.isFinite(savedStats.attempted)) quizStats = savedStats;
+    } catch (error) {
+        console.warn("Could not read saved learning progress.", error);
+    }
+
+    window.onload = initializeApp;
+
+    async function apiRequest(path, options = {}) {
+        const {auth = true, ...requestOptions} = options;
+        const headers = new Headers(requestOptions.headers || {});
+        const token = sessionStorage.getItem(LOGIN_TOKEN_KEY);
+        if (auth && token) headers.set("Authorization", `Bearer ${token}`);
+        const response = await fetch(`${API_BASE}${path}`, {...requestOptions, headers});
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+            if (response.status === 401 && auth) {
+                sessionStorage.removeItem(LOGIN_TOKEN_KEY);
+                document.getElementById("loginOverlay").style.display = "flex";
+            }
+            throw new Error(payload.detail || payload.message || `Request failed (${response.status})`);
+        }
+        return payload;
+    }
+
+    async function apiBlobRequest(path) {
+        const headers = new Headers();
+        const token = sessionStorage.getItem(LOGIN_TOKEN_KEY);
+        if (token) headers.set("Authorization", `Bearer ${token}`);
+        const response = await fetch(`${API_BASE}${path}`, {headers});
+        if (!response.ok) {
+            const payload = await response.json().catch(() => ({}));
+            if (response.status === 401) {
+                sessionStorage.removeItem(LOGIN_TOKEN_KEY);
+                document.getElementById("loginOverlay").style.display = "flex";
+            }
+            throw new Error(payload.detail || `Request failed (${response.status})`);
+        }
+        return URL.createObjectURL(await response.blob());
+    }
+
+    async function initializeApp() {
+        const token = sessionStorage.getItem(LOGIN_TOKEN_KEY);
+        if (!token) {
+            document.getElementById("loginOverlay").style.display = "flex";
+            return;
+        }
+        try {
+            await apiRequest("/auth/me");
+            document.getElementById("loginOverlay").style.display = "none";
+            await syncCloudLibrary();
+        } catch (error) {
+            sessionStorage.removeItem(LOGIN_TOKEN_KEY);
+            document.getElementById("loginOverlay").style.display = "flex";
+        }
+    }
+
+    async function loginUser(event) {
+        event.preventDefault();
+        const errorElement = document.getElementById("loginErrorMsg");
+        const button = document.getElementById("loginSubmitButton");
+        button.disabled = true;
+        button.textContent = "Signing in...";
+        errorElement.style.display = "none";
+        try {
+            const result = await apiRequest("/auth/login", {
+                auth: false,
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    email: document.getElementById("loginEmail").value.trim(),
+                    password: document.getElementById("loginPassword").value
+                })
+            });
+            sessionStorage.setItem(LOGIN_TOKEN_KEY, result.access_token);
+            document.getElementById("loginPassword").value = "";
+            document.getElementById("loginOverlay").style.display = "none";
+            await syncCloudLibrary();
+        } catch (error) {
+            errorElement.textContent = error.message;
+            errorElement.style.display = "block";
+        } finally {
+            button.disabled = false;
+            button.textContent = "Login & Sync";
+        }
+    }
+
+    function logoutUser() {
+        sessionStorage.removeItem(LOGIN_TOKEN_KEY);
+        notesLibrary = [];
+        currentActiveNotes = "";
+        if (currentPdfUrl && currentPdfUrl.startsWith("blob:")) URL.revokeObjectURL(currentPdfUrl);
+        currentPdfUrl = null;
+        document.getElementById("pdfPreviewIframe").src = "";
+        renderNotesLibrary();
+        document.getElementById("splitArena").style.display = "none";
+        document.getElementById("welcomeHero").style.display = "flex";
+        document.getElementById("loginOverlay").style.display = "flex";
+    }
+
+    function cacheNotesLibrary() {
+        try {
+            const smallNotes = notesLibrary.map(({pdf_base64, ...note}) => note);
+            localStorage.setItem("notegemma_notes", JSON.stringify(smallNotes));
+        } catch (error) {
+            console.warn("Could not cache notes locally; Supabase remains the source of truth.", error);
+        }
+    }
+
+    async function syncCloudLibrary() {
+        const flow = document.getElementById("conversationFlow");
+        try {
+            const data = await apiRequest("/notes");
+            notesLibrary = data.notes || [];
+            cacheNotesLibrary();
+            renderNotesLibrary();
+        } catch (error) {
+            renderNotesLibrary();
+            const message = document.createElement("div");
+            message.className = "bubble agent-bubble unsupported-tag";
+            message.textContent = `Supabase notes could not be loaded: ${error.message}. Run supabase_tables.sql in Supabase SQL Editor, then check the backend .env settings.`;
+            flow.appendChild(message);
+        }
+
+        if (notesLibrary.length > 0) {
+            await loadSavedNote(0);
+        }
+    }
+
+    function toggleSidebar() {
+        document.getElementById("appSidebar").classList.toggle("collapsed");
+    }
+
+    function setLanguage(lang) {
+        currentLanguage = lang;
+        document.getElementById("chipLangEn").classList.toggle("selected", lang === 'en');
+        document.getElementById("chipLangHi").classList.toggle("selected", lang === 'hi');
+        document.getElementById("langToggle").innerText = (lang === 'hi') ? "Language: Hinglish" : "Language: English";
+        document.getElementById("langToggle").classList.toggle("active-lang", lang === 'hi');
+    }
+
+    function toggleLanguage() {
+        setLanguage(currentLanguage === "en" ? "hi" : "en");
+    }
+
+    function showNotesUploader() {
+        document.getElementById("initialUploadBox").style.display = "flex";
+    }
+
+    function hideUploadBox() {
+        document.getElementById("initialUploadBox").style.display = "none";
+    }
+
+    function startNewChat() {
+        document.getElementById("conversationFlow").innerHTML = `
+            <div class="bubble agent-bubble">
+                <strong>🤖 NoteGemma Agent:</strong>
+                <p style="margin-top: 4px;">New session started! Notes left pane mein available hain. Query type karein.</p>
+            </div>
+        `;
+        document.getElementById("mainQueryInput").value = "";
+    }
+
+    function toggleLeftPaneView(mode) {
+        const pdfIframe = document.getElementById("pdfPreviewIframe");
+        const textView = document.getElementById("notesDisplayContent");
+        const btnPdf = document.getElementById("btnViewPdf");
+        const btnText = document.getElementById("btnViewText");
+
+        if (mode === 'pdf') {
+            if (!currentPdfUrl) {
+                textView.style.display = "block";
+                pdfIframe.style.display = "none";
+                btnText.classList.add("active");
+                btnPdf.classList.remove("active");
+                alert("Is document ka visual PDF preview available nahi hai. 'Change File' par click karke PDF dubara upload karein.");
+                return;
+            }
+            pdfIframe.src = currentPdfUrl;
+            pdfIframe.style.display = "block";
+            textView.style.display = "none";
+            btnPdf.classList.add("active");
+            btnText.classList.remove("active");
+        } else {
+            pdfIframe.style.display = "none";
+            textView.style.display = "block";
+            btnText.classList.add("active");
+            btnPdf.classList.remove("active");
+        }
+    }
+
+    async function handleFileUpload(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const label = document.getElementById("uploadStatusText");
+        label.innerText = `Extracting & rendering ${file.name}...`;
+        if (file.size > 40 * 1024 * 1024) {
+            label.innerText = "Choose a file smaller than 40 MB";
+            alert("Files must be 40 MB or smaller.");
+            e.target.value = "";
+            return;
+        }
+
+        const topic = document.getElementById("noteTopicInput").value.trim() || "General Study";
+        const title = document.getElementById("noteTitleInput").value.trim() || file.name;
+        if (file.name.toLowerCase().endsWith(".txt")) {
+            try {
+                const content = await file.text();
+                const note = await storeNoteInLibrary(title, content, topic);
+                activateNotesView(note.title, note.content, null, note.topic);
+                hideUploadBox();
+            } catch (error) {
+                label.innerText = "Save failed";
+                alert(`Could not save notes to Supabase: ${error.message}`);
+            }
+            return;
+        }
+
+        try {
+            const upload = await apiRequest("/create-pdf-upload", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({filename: file.name, size: file.size})
+            });
+            const signedUploadBody = new FormData();
+            signedUploadBody.append("cacheControl", "3600");
+            signedUploadBody.append("", file);
+            const storageResponse = await fetch(upload.signed_url, {
+                method: "PUT",
+                headers: {"x-upsert": "false"},
+                body: signedUploadBody
+            });
+            if (!storageResponse.ok) {
+                const details = await storageResponse.text();
+                throw new Error(`Supabase Storage upload failed (${storageResponse.status})${details ? `: ${details}` : ""}`);
+            }
+
+            const result = await apiRequest("/complete-pdf-upload", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    title,
+                    topic,
+                    pdf_storage_path: upload.pdf_storage_path
+                })
+            });
+            notesLibrary.unshift(result.note);
+            cacheNotesLibrary();
+            renderNotesLibrary();
+            await loadSavedNote(0);
+            hideUploadBox();
+        } catch(error) {
+            alert(`Upload/save failed: ${error.message}. Ensure the backend is running and Supabase is configured.`);
+            label.innerText = `Server error`;
+        }
+    }
+
+    async function savePastedNotes() {
+        const title = document.getElementById("noteTitleInput").value.trim() || "Pasted Study Notes";
+        const topic = document.getElementById("noteTopicInput").value.trim() || "General Study";
+        const content = document.getElementById("pastedNotesInput").value.trim();
+        if (!content) {
+            alert("Paste some study notes first.");
+            return;
+        }
+        try {
+            const note = await storeNoteInLibrary(title, content, topic);
+            document.getElementById("pastedNotesInput").value = "";
+            activateNotesView(note.title, note.content, null, note.topic);
+            hideUploadBox();
+        } catch (error) {
+            alert(`Could not save notes to Supabase: ${error.message}`);
+        }
+    }
+
+    function activateNotesView(title, content, pdfUrl, topic = "General Study") {
+        if (currentPdfUrl && currentPdfUrl.startsWith("blob:") && currentPdfUrl !== pdfUrl) {
+            URL.revokeObjectURL(currentPdfUrl);
+        }
+        currentActiveNotes = content;
+        currentTopic = topic || "General Study";
+        currentPdfUrl = pdfUrl;
+        document.getElementById("activeDocumentTitle").innerText = title;
+        document.getElementById("notesDisplayContent").innerText = content;
+
+        const pdfIframe = document.getElementById("pdfPreviewIframe");
+
+        if (pdfUrl) {
+            pdfIframe.src = pdfUrl;
+            toggleLeftPaneView('pdf');
+        } else {
+            pdfIframe.src = "";
+            toggleLeftPaneView('text');
+        }
+
+        document.getElementById("welcomeHero").style.display = "none";
+        document.getElementById("initialUploadBox").style.display = "none";
+        document.getElementById("splitArena").style.display = "flex";
+    }
+
+    async function storeNoteInLibrary(title, content, topic = "General Study", pdfStoragePath = "") {
+        const result = await apiRequest("/notes", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({title, topic, content, pdf_storage_path: pdfStoragePath})
+        });
+        const note = result.note;
+        notesLibrary.unshift(note);
+        cacheNotesLibrary();
+        renderNotesLibrary();
+        return note;
+    }
+
+    function renderNotesLibrary() {
+        const container = document.getElementById("savedNotesContainer");
+        if (notesLibrary.length === 0) {
+            container.innerHTML = `<div style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 20px;" id="emptyNotesMsg">No notes stored yet</div>`;
+            return;
+        }
+        container.innerHTML = "";
+        notesLibrary.forEach((note, idx) => {
+            const card = document.createElement("div");
+            card.className = "item-card";
+            const title = document.createElement("div");
+            title.className = "item-title";
+            title.textContent = `📄 ${note.title}`;
+            title.onclick = () => loadSavedNote(idx);
+            const remove = document.createElement("button");
+            remove.className = "delete-btn";
+            remove.type = "button";
+            remove.textContent = "🗑️";
+            remove.onclick = () => deleteNote(idx);
+            card.append(title, remove);
+            container.appendChild(card);
+        });
+    }
+
+    async function loadSavedNote(idx) {
+        const note = notesLibrary[idx];
+        try {
+            const response = await apiRequest(`/notes/${encodeURIComponent(note.id)}`);
+            const storedNote = response.note;
+            const pdfUrl = response.pdf_available
+                ? await apiBlobRequest(`/notes/${encodeURIComponent(note.id)}/pdf`)
+                : null;
+            notesLibrary[idx] = {...note, ...storedNote, pdfUrl};
+            activateNotesView(storedNote.title, storedNote.content, pdfUrl, storedNote.topic);
+        } catch (error) {
+            alert(`Could not load this note from Supabase: ${error.message}`);
+        }
+    }
+
+    async function deleteNote(idx) {
+        if (!confirm(`Delete "${notesLibrary[idx].title}"?`)) return;
+        try {
+            await apiRequest(`/notes/${encodeURIComponent(notesLibrary[idx].id)}`, {method: "DELETE"});
+        } catch (error) {
+            alert(`Could not delete note from Supabase: ${error.message}`);
+            return;
+        }
+        notesLibrary.splice(idx, 1);
+        cacheNotesLibrary();
+        renderNotesLibrary();
+        if (notesLibrary.length > 0) {
+            await loadSavedNote(0);
+        } else {
+            document.getElementById("splitArena").style.display = "none";
+            document.getElementById("welcomeHero").style.display = "flex";
+        }
+    }
+
+    async function clearAllNotes() {
+        if (!confirm("Are you sure you want to delete all saved notes?")) return;
+        try {
+            for (const note of notesLibrary) {
+                await apiRequest(`/notes/${encodeURIComponent(note.id)}`, {method: "DELETE"});
+            }
+        } catch (error) {
+            await syncCloudLibrary();
+            alert(`Could not delete all notes from Supabase: ${error.message}`);
+            return;
+        }
+        notesLibrary = [];
+        cacheNotesLibrary();
+        renderNotesLibrary();
+        document.getElementById("splitArena").style.display = "none";
+        document.getElementById("welcomeHero").style.display = "flex";
+    }
+
+    function switchRightMode(mode) {
+        document.getElementById("rightInteractiveColumn").classList.toggle("quiz-mode", mode === "quiz");
+        document.getElementById("chipChat").classList.toggle("active", mode === 'chat');
+        document.getElementById("chipQuiz").classList.toggle("active", mode === 'quiz');
+
+        if (mode === 'quiz') {
+            document.getElementById("quizPanelBox").style.display = "block";
+            if (!activeQuiz) generatePracticeQuiz();
+        } else {
+            document.getElementById("quizPanelBox").style.display = "none";
+        }
+    }
+
+    function triggerQuizMode() {
+        if (!currentActiveNotes) {
+            alert("Pehle notes upload karein!");
+            showNotesUploader();
+            return;
+        }
+        switchRightMode('quiz');
+    }
+
+    function explainInHinglishDirect() {
+        setLanguage('hi');
+        const query = lastAskedQuestion ? 
+            `${lastAskedQuestion} ko Hinglish mein acche se samjhao` : 
+            "Is topic ke main concepts ko Hinglish mein samjhao";
+            
+        document.getElementById("mainQueryInput").value = query;
+        executeSend();
+    }
+
+    function currentLearnerLevel() {
+        const selected = document.getElementById("learnerLevelSelect").value;
+        if (selected !== "auto") return selected;
+        if (quizStats.attempted >= 3 && quizStats.correct / quizStats.attempted >= 0.8) return "advanced";
+        if (quizStats.attempted >= 3 && quizStats.correct / quizStats.attempted < 0.5) return "beginner";
+        return "intermediate";
+    }
+
+    async function showLearningResponse(endpoint, payload, heading) {
+        if (!currentActiveNotes) {
+            showNotesUploader();
+            alert("Upload, paste, or select notes first.");
+            return;
+        }
+        switchRightMode("chat");
+        const flow = document.getElementById("conversationFlow");
+        const message = document.createElement("div");
+        message.className = "bubble agent-bubble";
+        message.textContent = `${heading}: working from ${currentTopic} notes...`;
+        flow.appendChild(message);
+        flow.scrollTop = flow.scrollHeight;
+        try {
+            const data = await apiRequest(endpoint, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(payload)
+            });
+            if (endpoint === "/generate-flashcards") {
+                const cards = Array.isArray(data.flashcards) ? data.flashcards : [];
+                if (cards.length === 0) throw new Error("No flashcards could be created from these notes.");
+                message.innerHTML = `<strong>${escapeHtml(heading)}</strong><div class="flashcard-list">${cards.map((card, index) => `
+                    <article class="flashcard">
+                        <strong>Card ${index + 1}: ${escapeHtml(card.front || "Question")}</strong>
+                        <p>${escapeHtml(card.back || "No answer provided.")}</p>
+                    </article>
+                `).join("")}</div>`;
+                flow.scrollTop = flow.scrollHeight;
+                return;
+            }
+            const result = data.answer || data.explanation || data.summary || data.plan || data;
+            const resultText = typeof result === "string" ? result : JSON.stringify(result, null, 2);
+            message.innerHTML = `<strong>${escapeHtml(heading)}</strong><div class="formatted-response">${formatAIResponse(resultText)}</div>`;
+        } catch (error) {
+            message.textContent = `${heading} failed: ${error.message}`;
+        }
+        flow.scrollTop = flow.scrollHeight;
+    }
+
+    function explainCurrentMaterial() {
+        showLearningResponse("/explain-material", {
+            topic: currentTopic,
+            notes: currentActiveNotes,
+            language: currentLanguage,
+            learner_level: currentLearnerLevel()
+        }, "Explanation");
+    }
+
+    function createLearningPlan() {
+        showLearningResponse("/generate-learning-plan", {
+            topic: currentTopic,
+            notes: currentActiveNotes,
+            learner_level: currentLearnerLevel()
+        }, "Learning plan and practice activities");
+    }
+
+    function summarizeCurrentNotes() {
+        showLearningResponse("/summarize-notes", {
+            topic: currentTopic,
+            notes: currentActiveNotes,
+            language: currentLanguage
+        }, "Study summary");
+    }
+
+    function createFlashcards() {
+        showLearningResponse("/generate-flashcards", {
+            topic: currentTopic,
+            notes: currentActiveNotes,
+            count: 5
+        }, "Flashcards");
+    }
+
+    function adaptExplanation() {
+        showLearningResponse("/adapt-explanation", {
+            topic: currentTopic,
+            notes: currentActiveNotes,
+            question: lastAskedQuestion || "Explain the key ideas in these notes",
+            language: currentLanguage,
+            learner_level: currentLearnerLevel()
+        }, `Adapted explanation (${currentLearnerLevel()})`);
+    }
+
+    function escapeHtml(text) {
+        return String(text || "").replace(/[&<>"']/g, character => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            "\"": "&quot;",
+            "'": "&#39;"
+        })[character]);
+    }
+
+    function formatAIResponse(text) {
+        if (!text) return "";
+        const formatInline = value => escapeHtml(value)
+            .replace(/`([^`]+)`/g, "<code>$1</code>")
+            .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+            .replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, "$1<em>$2</em>");
+
+        const lines = String(text).replace(/\r\n?/g, "\n").split("\n");
+        const blocks = [];
+        let paragraph = [];
+        let listType = "";
+        let listItems = [];
+
+        const flushParagraph = () => {
+            if (paragraph.length) {
+                blocks.push(`<p>${paragraph.map(formatInline).join(" ")}</p>`);
+                paragraph = [];
+            }
+        };
+        const flushList = () => {
+            if (listItems.length) {
+                const tag = listType || "ul";
+                blocks.push(`<${tag}>${listItems.map(item => `<li>${formatInline(item)}</li>`).join("")}</${tag}>`);
+                listItems = [];
+                listType = "";
+            }
+        };
+
+        for (const rawLine of lines) {
+            const line = rawLine.trim();
+            if (!line) {
+                flushParagraph();
+                flushList();
+                continue;
+            }
+            if (/^(?:[-*_]\s*){3,}$/.test(line)) {
+                flushParagraph();
+                flushList();
+                continue;
+            }
+
+            const heading = line.match(/^#{1,6}\s+(.+)$/);
+            if (heading) {
+                flushParagraph();
+                flushList();
+                blocks.push(`<h4>${formatInline(heading[1].replace(/\s+#+$/, ""))}</h4>`);
+                continue;
+            }
+
+            const bullet = line.match(/^(?:[-*•]\s+)(.+)$/);
+            const numbered = line.match(/^\d+[.)]\s+(.+)$/);
+            if (bullet || numbered) {
+                flushParagraph();
+                const nextListType = numbered ? "ol" : "ul";
+                if (listType && listType !== nextListType) flushList();
+                listType = nextListType;
+                listItems.push((bullet || numbered)[1]);
+                continue;
+            }
+
+            flushList();
+            paragraph.push(line);
+        }
+        flushParagraph();
+        flushList();
+        return blocks.join("");
+    }
+
+    async function executeSend() {
+        const input = document.getElementById("mainQueryInput");
+        let question = input.value.trim();
+
+        if (!question) return;
+        if (!currentActiveNotes) {
+            showNotesUploader();
+            return alert("Pehle syllabus notes upload ya select karein!");
+        }
+
+        const hinglishCheck = ["hinglish", "hindi", "batao", "kya", "samjhao", "kaise", "kitne", "hote", "hai", "karo", "mein", "acche", "se"];
+        const hasHinglishWords = hinglishCheck.some(w => question.toLowerCase().includes(w));
+        
+        let targetLang = currentLanguage;
+        if (hasHinglishWords) {
+            targetLang = "hi";
+            setLanguage('hi');
+        }
+
+        const cleanTopic = question.replace(/ko Hinglish mein.*|kya hai.*|explain.*|batao.*/gi, '').trim();
+        if (cleanTopic.length > 2) {
+            lastAskedQuestion = cleanTopic;
+        }
+
+        switchRightMode('chat');
+        const flow = document.getElementById("conversationFlow");
+
+        const userDiv = document.createElement("div");
+        userDiv.className = "bubble user-bubble";
+        userDiv.innerText = question;
+        flow.appendChild(userDiv);
+        input.value = "";
+
+        const agentDiv = document.createElement("div");
+        agentDiv.className = "bubble agent-bubble";
+        agentDiv.innerHTML = "<em>✦ AI Agent inspecting notes & formulating exam points...</em>";
+        flow.appendChild(agentDiv);
+        flow.scrollTop = flow.scrollHeight;
+
+        try {
+            const data = await apiRequest("/ask", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    notes: currentActiveNotes, 
+                    question: question, 
+                    topic: currentTopic,
+                    language: targetLang
+                })
+            });
+
+            if (data.status === "unsupported") {
+                agentDiv.innerHTML = `
+                    <div class="unsupported-tag">
+                        🛡️ ${escapeHtml(data.message)}
+                    </div>
+                `;
+            } else {
+                const formattedAnswer = formatAIResponse(data.answer || "No response received.");
+                const evidenceText = (data.evidence && data.evidence !== "undefined")
+                    ? data.evidence 
+                    : "Verified directly from uploaded notes.";
+                const modelNotice = data.model_warning
+                    ? `<div class="unsupported-tag" style="margin-bottom:10px;">${escapeHtml(data.model_warning)}</div>`
+                    : "";
+
+                agentDiv.innerHTML = `
+                    ${modelNotice}
+                    <div class="formatted-response" style="line-height: 1.7; font-size: 13.5px;">${formattedAnswer}</div>
+                    <div class="evidence-quote">
+                        <strong>Identifiable Evidence Quote:</strong><br>"${escapeHtml(evidenceText)}"
+                    </div>
+                `;
+            }
+        } catch(err) {
+            agentDiv.innerHTML = `<div class="unsupported-tag">⚠ ${escapeHtml(err.message)}. Ensure the backend and Supabase are configured.</div>`;
+        }
+        flow.scrollTop = flow.scrollHeight;
+    }
+
+    async function generatePracticeQuiz() {
+        if (!currentActiveNotes) {
+            alert("Pehle notes upload karein!");
+            showNotesUploader();
+            return;
+        }
+
+        selectedQuizOption = null;
+        const fb = document.getElementById("quizFeedbackBox");
+        fb.style.display = "none";
+        fb.innerHTML = "";
+
+        const qPrompt = document.getElementById("quizQuestionPrompt");
+        const list = document.getElementById("quizChoicesList");
+        
+        qPrompt.innerHTML = "<em>✦ Generating a fresh diagnostic question from your notes...</em>";
+        list.innerHTML = "<div style='text-align:center; padding:15px; color:var(--text-muted); font-size:12px;'>Loading options...</div>";
+
+        try {
+            activeQuiz = await apiRequest("/generate-quiz", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ notes: currentActiveNotes, topic: currentTopic })
+            });
+            if (!activeQuiz.question || !activeQuiz.options || !activeQuiz.correct_option) {
+                throw new Error("The quiz service returned an invalid question.");
+            }
+        } catch(err) {
+            activeQuiz = null;
+            qPrompt.textContent = `Could not generate a question: ${err.message}`;
+            list.innerHTML = "";
+            return;
+        }
+
+        qPrompt.innerText = activeQuiz.question;
+        list.innerHTML = "";
+
+        for (const [key, val] of Object.entries(activeQuiz.options)) {
+            const opt = document.createElement("div");
+            opt.className = "option-choice";
+            const optionLabel = document.createElement("strong");
+            optionLabel.textContent = `${key}) `;
+            opt.append(optionLabel, document.createTextNode(String(val)));
+            opt.onclick = () => {
+                document.querySelectorAll(".option-choice").forEach(el => el.classList.remove("selected"));
+                opt.classList.add("selected");
+                selectedQuizOption = key;
+            };
+            list.appendChild(opt);
+        }
+    }
+
+    async function submitQuizEvaluation() {
+        if (!selectedQuizOption) return alert("Pehle koi option choose karein!");
+        const fb = document.getElementById("quizFeedbackBox");
+        fb.style.display = "block";
+        fb.innerHTML = "<p style='color: var(--text-muted); font-size:12px;'>Evaluating evidence...</p>";
+
+        try {
+            const data = await apiRequest("/evaluate-quiz", {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    topic: currentTopic,
+                    notes: currentActiveNotes,
+                    question: activeQuiz.question,
+                    options: activeQuiz.options,
+                    correct_option: activeQuiz.correct_option,
+                    user_choice: selectedQuizOption
+                })
+            });
+            quizStats.attempted += 1;
+            if (data.is_correct) quizStats.correct += 1;
+            try {
+                localStorage.setItem("notegemma_quiz_stats", JSON.stringify(quizStats));
+            } catch (storageError) {
+                console.warn("Could not save learning progress locally.", storageError);
+            }
+
+            let feedback = data.feedback;
+            if (!data.is_correct) {
+                const hint = await apiRequest("/explain-incorrect-answer", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({
+                        topic: currentTopic,
+                        notes: currentActiveNotes,
+                        question: activeQuiz.question,
+                        incorrect_answer: activeQuiz.options[selectedQuizOption] || "",
+                        correct_answer: activeQuiz.options[activeQuiz.correct_option] || ""
+                    })
+                });
+                feedback += `\n\n${hint.explanation || ""}`;
+            }
+            const color = data.is_correct ? "var(--success)" : "var(--accent-pink)";
+            fb.innerHTML = `
+                <div style="background: rgba(23,9,50,0.9); border-left: 3px solid ${color}; padding: 12px; border-radius: 8px;">
+                    <strong style="color: ${color}; font-size:13px;">${data.is_correct ? "✓ Correct Reasoning!" : "⚠ Diagnostic Feedback"}</strong>
+                    <p style="margin-top: 6px; font-size: 12.5px; white-space: pre-line;">${escapeHtml(feedback)}</p>
+                </div>
+            `;
+        } catch(e) {
+            fb.textContent = `Could not evaluate answer: ${e.message}`;
+        }
+    }
+</script>
+</body>
+</html>
